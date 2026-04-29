@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.sqlite
+*.db
+*.db-shm
+*.db-wal
+data/
+scratch/
+migrate-data.js
