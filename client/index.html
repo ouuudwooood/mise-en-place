@@ -382,6 +382,7 @@
           <button type="submit" class="btn btn-primary btn-sm">+ Ajouter</button>
         </form>
         <div id="categories-list" class="table-wrap"></div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">💡 Glissez-déposez les lignes pour réordonner. Cliquez sur ✏️ pour modifier.</p>
       </div>
 
       <div class="section-divider"></div>
@@ -492,6 +493,28 @@
         <select id="edit-item-category" required>
           <option value="">— Catégorie —</option>
         </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%;">Enregistrer les modifications</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MODAL: EDIT CATEGORY ===== -->
+<div id="edit-cat-modal-overlay" class="modal-overlay" hidden style="z-index: 2000;">
+  <div class="modal-box" style="width: 380px; max-width: 90vw; text-align: left;">
+    <button class="modal-close" id="edit-cat-modal-close"><i data-lucide="x"></i></button>
+    <div class="section-header" style="margin-top: 0;">
+      <h3>Modifier la catégorie</h3>
+    </div>
+    <form id="form-edit-category" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+      <input type="hidden" id="edit-cat-original-name" />
+      <div class="form-group" style="margin: 0;">
+        <label>Nom</label>
+        <input type="text" id="edit-cat-name" required />
+      </div>
+      <div class="form-group" style="margin: 0; margin-bottom: 8px;">
+        <label>Emoji</label>
+        <input type="text" id="edit-cat-emoji" maxlength="5" style="text-align: center; font-size: 24px;" />
       </div>
       <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%;">Enregistrer les modifications</button>
     </form>

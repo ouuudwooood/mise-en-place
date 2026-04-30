@@ -778,14 +778,15 @@ function renderCategoriesList() {
   }
   wrap.innerHTML = `
     <table>
-      <thead><tr><th style="width: 40px;"></th><th>Nom</th><th>Icone</th><th></th></tr></thead>
+      <thead><tr><th style="width: 40px;"></th><th>Icone</th><th>Nom</th><th></th></tr></thead>
       <tbody id="categories-tbody">
         ${_categories.map(c => `
           <tr data-id="${c.name}">
             <td class="drag-handle" style="text-align: center;"><i data-lucide="grip-vertical"></i></td>
-            <td>${c.name}</td>
-            <td><span style="font-size: 1.2em">${c.emoji || categoryIcon(c.name)}</span></td>
+            <td><span style="font-size: 1.4em">${c.emoji || '🍽️'}</span></td>
+            <td><strong>${c.name}</strong></td>
             <td style="text-align:right">
+              <button class="btn btn-secondary btn-sm btn-icon" data-edit-cat="${c.name}" title="Modifier"><i data-lucide="edit-2"></i></button>
               <button class="btn btn-danger btn-sm btn-icon" data-delete-cat="${c.name}" title="Supprimer"><i data-lucide="trash-2"></i></button>
             </td>
           </tr>
@@ -801,7 +802,7 @@ function renderCategoriesList() {
       animation: 150,
       ghostClass: 'sortable-ghost',
       dragClass: 'sortable-drag',
-      onEnd: async (evt) => {
+      onEnd: async () => {
         const newOrder = Array.from(tbody.querySelectorAll('tr')).map(tr => tr.dataset.id);
         try {
           await api('/api/categories/reorder', 'PUT', { names: newOrder });
@@ -813,6 +814,13 @@ function renderCategoriesList() {
       }
     });
   }
+
+  wrap.querySelectorAll('[data-edit-cat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = _categories.find(c => c.name === btn.dataset.editCat);
+      if (cat) openEditCategoryModal(cat);
+    });
+  });
 
   wrap.querySelectorAll('[data-delete-cat]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -827,6 +835,14 @@ function renderCategoriesList() {
       } catch (e) { toast(e.message || 'Erreur suppression', 'error'); }
     });
   });
+}
+
+function openEditCategoryModal(cat) {
+  $('#edit-cat-original-name').value = cat.name;
+  $('#edit-cat-name').value = cat.name;
+  $('#edit-cat-emoji').value = cat.emoji || '';
+  $('#edit-cat-modal-overlay').hidden = false;
+  lucide.createIcons({ nodes: $('#edit-cat-modal-overlay').querySelectorAll('[data-lucide]') });
 }
 
 async function loadSettings() {
@@ -1086,6 +1102,31 @@ function initParametresEvents() {
 
   $('#edit-item-modal-close')?.addEventListener('click', () => {
     $('#edit-item-modal-overlay').hidden = true;
+  });
+
+  // Edit category modal
+  $('#edit-cat-modal-close')?.addEventListener('click', () => {
+    $('#edit-cat-modal-overlay').hidden = true;
+  });
+  $('#edit-cat-modal-overlay')?.addEventListener('click', e => {
+    if (e.target === $('#edit-cat-modal-overlay')) $('#edit-cat-modal-overlay').hidden = true;
+  });
+
+  $('#form-edit-category')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const originalName = $('#edit-cat-original-name').value;
+    const name = $('#edit-cat-name').value.trim();
+    const emoji = $('#edit-cat-emoji').value.trim();
+    if (!name) return;
+    try {
+      const updated = await api(`/api/categories/${encodeURIComponent(originalName)}`, 'PUT', { name, emoji });
+      $('#edit-cat-modal-overlay').hidden = true;
+      await loadShared();
+      renderCategoriesList();
+      populateSelect('#new-item-category', _categories, c => c.name, c => `${c.emoji || categoryIcon(c.name)} ${c.name}`);
+      populateSelect('#bulk-action-category', _categories, c => c.name, c => `${c.emoji || categoryIcon(c.name)} ${c.name}`, 'Modifier Catégorie...');
+      toast(`Catégorie mise à jour : ${name}`);
+    } catch (err) { toast('Erreur : ' + err.message, 'error'); }
   });
 
   $('#form-edit-item')?.addEventListener('submit', async e => {

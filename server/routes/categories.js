@@ -18,7 +18,6 @@ router.post('/', async (req, res) => {
   const { name, emoji = '🍽️' } = req.body;
   if (!name) return res.status(400).json({ error: 'Nom requis' });
 
-  // Get max order_index
   const { data: maxRow } = await supabase
     .from('categories')
     .select('order_index')
@@ -41,7 +40,7 @@ router.post('/', async (req, res) => {
   res.json(data);
 });
 
-// PUT /api/categories/reorder
+// PUT /api/categories/reorder  — MUST be before /:name
 router.put('/reorder', async (req, res) => {
   const { names } = req.body;
   if (!names || !Array.isArray(names)) return res.status(400).json({ error: 'names[] requis' });
@@ -55,6 +54,47 @@ router.put('/reorder', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// PUT /api/categories/:name — edit name and/or emoji
+router.put('/:name', async (req, res) => {
+  const oldName = decodeURIComponent(req.params.name);
+  const { name: newName, emoji } = req.body;
+
+  if (!newName && emoji === undefined) {
+    return res.status(400).json({ error: 'name ou emoji requis' });
+  }
+
+  const updates = {};
+  if (newName && newName.trim() !== oldName) updates.name = newName.trim();
+  if (emoji !== undefined) updates.emoji = emoji || null;
+
+  if (Object.keys(updates).length === 0) {
+    return res.json({ success: true, message: 'Aucun changement' });
+  }
+
+  // If renaming, update all items that reference the old category name
+  if (updates.name) {
+    const { error: itemsErr } = await supabase
+      .from('items')
+      .update({ category: updates.name })
+      .eq('category', oldName);
+
+    if (itemsErr) return res.status(500).json({ error: itemsErr.message });
+  }
+
+  const { data, error } = await supabase
+    .from('categories')
+    .update(updates)
+    .eq('name', oldName)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === '23505') return res.status(409).json({ error: 'Ce nom existe déjà' });
+    return res.status(500).json({ error: error.message });
+  }
+  res.json(data);
 });
 
 // DELETE /api/categories/:name
