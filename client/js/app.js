@@ -807,6 +807,7 @@ function renderCategoriesList() {
         try {
           await api('/api/categories/reorder', 'PUT', { names: newOrder });
           await loadShared();
+          renderCategoriesList();
         } catch (e) {
           toast('Erreur de réorganisation', 'error');
           renderCategoriesList();
@@ -930,6 +931,7 @@ function renderItemsList() {
         try {
           await api('/api/items/reorder', 'PUT', { ids: newOrder });
           await loadShared();
+          renderItemsList();
         } catch (e) {
           toast('Erreur de réorganisation', 'error');
           renderItemsList();
