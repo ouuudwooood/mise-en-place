@@ -372,7 +372,12 @@ function renderItemCards(items) {
 
 function renderCategoryPills(items) {
   const pillsEl = $('#prod-category-pills');
-  const categories = ['Tous', ...new Set(items.map(i => i.category))];
+  // Use _categories order (sorted by order_index), filter to only cats that have items
+  const itemCatSet = new Set(items.map(i => i.category));
+  const ordered = _categories.map(c => c.name).filter(n => itemCatSet.has(n));
+  // Fallback: any item category not in _categories
+  itemCatSet.forEach(c => { if (!ordered.includes(c)) ordered.push(c); });
+  const categories = ['Tous', ...ordered];
 
   pillsEl.innerHTML = categories.map(cat => `
     <button class="pill${cat === _activeProdCategory ? ' active' : ''}" data-cat="${cat}">

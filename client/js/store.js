@@ -27,7 +27,10 @@ async function initStoreOrder() {
 
 function renderOrderCategoryPills() {
   const el = $('#order-category-pills');
-  const cats = ['Tous', ...new Set(_items.map(i => i.category))];
+  const itemCatSet = new Set(_items.map(i => i.category));
+  const ordered = _categories.map(c => c.name).filter(n => itemCatSet.has(n));
+  itemCatSet.forEach(c => { if (!ordered.includes(c)) ordered.push(c); });
+  const cats = ['Tous', ...ordered];
   el.innerHTML = cats.map(c => `
     <button class="pill${c === _orderCategory ? ' active' : ''}" data-cat="${c}">
       ${c !== 'Tous' ? categoryIcon(c) + ' ' : ''}${c}
@@ -239,7 +242,10 @@ function closeManualStockSession() { $('#stock-manual-overlay').hidden = true; }
 
 function renderManualCategoryPills() {
   const el = $('#stock-manual-category-pills');
-  const cats = ['Tous', ...new Set(_items.map(i => i.category))];
+  const itemCatSet = new Set(_items.map(i => i.category));
+  const ordered = _categories.map(c => c.name).filter(n => itemCatSet.has(n));
+  itemCatSet.forEach(c => { if (!ordered.includes(c)) ordered.push(c); });
+  const cats = ['Tous', ...ordered];
   el.innerHTML = cats.map(c => `<button class="pill${c === _manualStockCategory ? ' active' : ''}" data-cat="${c}">${c !== 'Tous' ? categoryIcon(c) + ' ' : ''}${c}</button>`).join('');
   el.querySelectorAll('.pill').forEach(p => {
     p.addEventListener('click', () => { _manualStockCategory = p.dataset.cat; renderManualCategoryPills(); renderManualItemGrid(); });
